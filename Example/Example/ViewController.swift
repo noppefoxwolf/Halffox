@@ -20,6 +20,8 @@ class ViewController: UIViewController {
   private var request: VNDetectFaceLandmarksRequest!
   private var results: [VNFaceObservation] = []
   
+  let enlargeEye: CGFloat = 1.5
+  
   override func loadView() {
     super.loadView()
     displayView.translatesAutoresizingMaskIntoConstraints = false
@@ -56,6 +58,7 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     if let pixelBuffer = pixelBuffer {
       let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
       try? handler.perform([request])
+      
     }
     let width = CVPixelBufferGetWidth(pixelBuffer!)
     let height = CVPixelBufferGetHeight(pixelBuffer!)
@@ -65,25 +68,33 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     var filters: [CIFilter] = []
     
     if let landmarks = results.first?.landmarks {
-      if let result = landmarks.leftPupil?.pointsInImage(imageSize: size).first, let leftEye = landmarks.leftEye, leftEye.pointCount >= 6 {
+      if let result = landmarks.leftPupil?.pointsInImage(imageSize: size).first,
+        let leftEye = landmarks.leftEye, leftEye.pointCount > 1 {
+        
         let leftEyePoints = leftEye.pointsInImage(imageSize: size)
-        let eyeSize = distance(SIMD2(point: leftEyePoints[2]), SIMD2(point: leftEyePoints[6]))
+        let minY = leftEyePoints.min(by: { $0.y < $1.y })?.y
+        let maxY = leftEyePoints.max(by: { $0.y < $1.y })?.y
+        let eyeSize = maxY! - minY!
         
         let vector = CIVector(x: result.x, y: result.y)
         let filter = CIFilter(name: "CIBumpDistortion")!
         filter.setValue(vector, forKey: kCIInputCenterKey)
-        filter.setValue(eyeSize, forKey: kCIInputRadiusKey)
+        filter.setValue(eyeSize * enlargeEye, forKey: kCIInputRadiusKey)
         filter.setValue(0.5, forKey: kCIInputScaleKey)
         filters.append(filter)
       }
-      if let result = landmarks.rightPupil?.pointsInImage(imageSize: size).first, let rightEye = landmarks.rightEye,
-        rightEye.pointCount >= 6 {
+      if let result = landmarks.rightPupil?.pointsInImage(imageSize: size).first,
+         let rightEye = landmarks.rightEye, rightEye.pointCount > 1 {
+        
         let rightEyePoints = rightEye.pointsInImage(imageSize: size)
-        let eyeSize = distance(SIMD2(point: rightEyePoints[2]), SIMD2(point: rightEyePoints[6]))
+        let minY = rightEyePoints.min(by: { $0.y < $1.y })?.y
+        let maxY = rightEyePoints.max(by: { $0.y < $1.y })?.y
+        let eyeSize = maxY! - minY!
+        
         let vector = CIVector(x: result.x, y: result.y)
         let filter = CIFilter(name: "CIBumpDistortion")!
         filter.setValue(vector, forKey: kCIInputCenterKey)
-        filter.setValue(eyeSize, forKey: kCIInputRadiusKey)
+        filter.setValue(eyeSize * enlargeEye, forKey: kCIInputRadiusKey)
         filter.setValue(0.5, forKey: kCIInputScaleKey)
         filters.append(filter)
       }
@@ -139,5 +150,15 @@ class SampleBufferDisplayView: UIView {
 extension SIMD2 where Scalar == Double {
   init(point: CGPoint) {
     self = SIMD2.init(Double(point.x), Double(point.y))
+  }
+}
+
+extension Array where Element == CGPoint {
+  var size: CGSize? {
+    guard let minX = self.min(by: { $0.x > $1.x })?.x else { return nil }
+    guard let minY = self.min(by: { $0.y > $1.y })?.y else { return nil }
+    guard let maxX = self.max(by: { $0.x < $1.x })?.x else { return nil }
+    guard let maxY = self.max(by: { $0.y < $1.y })?.y else { return nil }
+    return CGSize(width: maxX - minX, height: maxY - minY)
   }
 }
