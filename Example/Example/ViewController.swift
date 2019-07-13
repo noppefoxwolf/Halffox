@@ -9,18 +9,37 @@
 import UIKit
 import AVFoundation
 import Vision
+import YUCIHighPassSkinSmoothing
 
 class ViewController: UIViewController {
   private let displayView: SampleBufferDisplayView = .init()
   let session = AVCaptureSession()
   let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
-  lazy var input = try! AVCaptureDeviceInput(device: device)
+  lazy var input: AVCaptureDeviceInput = {
+    device.unlockForConfiguration()
+    device.activeVideoMaxFrameDuration = CMTime(value: 1, timescale: 30)
+    device.activeVideoMinFrameDuration = CMTime(value: 1, timescale: 30)
+    try! device.lockForConfiguration()
+    let input = try! AVCaptureDeviceInput(device: device)
+    return input
+  }()
   let output = AVCaptureVideoDataOutput()
   
   private var request: VNDetectFaceLandmarksRequest!
+  private lazy var sequenceRequestHandler = VNSequenceRequestHandler()
   private var results: [VNFaceObservation] = []
   
+  private let sharedQueue = DispatchQueue(label: "com.halffox.shared", qos: .userInteractive)
+  private lazy var renderQueue = sharedQueue
+  private lazy var visionQueue = sharedQueue
+  
+  let context = CIContext(mtlDevice: MTLCreateSystemDefaultDevice()!)
+//  private lazy var renderQueue = DispatchQueue(label: "com.halffox.render", qos: .background)
+//  private lazy var visionQueue = DispatchQueue(label: "com.halffox.vision", qos: .default)
+  
   let enlargeEye: CGFloat = 1.5
+  let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
+//  let filter = MetalFilter()
   
   override func loadView() {
     super.loadView()
@@ -36,11 +55,20 @@ class ViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+//    VNDetectFaceLandmarksRequest.revision(VNDetectFaceLandmarksRequestRevision1, supportsConstellation: VNRequestFaceLandmarksConstellation.constellation76Points)
+    
     session.addInput(input)
     session.addOutput(output)
+    session.sessionPreset = .iFrame960x540
     output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA]
-    output.setSampleBufferDelegate(self, queue: DispatchQueue.main)
+    output.setSampleBufferDelegate(self, queue: renderQueue)
+    
+    let connection = output.connection(with: .video)!
+    connection.videoOrientation = .landscapeRight
+    connection.isVideoMirrored = true
+    
     session.startRunning()
+    
     
     
     request = VNDetectFaceLandmarksRequest { [weak self] (request, error) in
@@ -51,21 +79,37 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
+  func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    print("drop")
+    DispatchQueue.main.async { [weak self] in
+      self?.displayView.displayLayer.enqueue(sampleBuffer)
+    }
+  }
+  
   func captureOutput(_ output: AVCaptureOutput,
                      didOutput sampleBuffer: CMSampleBuffer,
                      from connection: AVCaptureConnection) {
-    let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-    if let pixelBuffer = pixelBuffer {
-      let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
+    let _pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+    guard let pixelBuffer = _pixelBuffer else { return }
+    
+    vision: do {
+      let options: [VNImageOption : Any] = [
+        VNImageOption.ciContext:context,
+      ]
+      let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: options)
       try? handler.perform([request])
-      
+      try? sequenceRequestHandler.perform([request], on: pixelBuffer, orientation: .up)
     }
-    let width = CVPixelBufferGetWidth(pixelBuffer!)
-    let height = CVPixelBufferGetHeight(pixelBuffer!)
+    
+    let width = CVPixelBufferGetWidth(pixelBuffer)
+    let height = CVPixelBufferGetHeight(pixelBuffer)
     let size = CGSize(width: width, height: height)
     
-    let ciImage = CIImage(cvImageBuffer: pixelBuffer!)
+    let ciImage = CIImage(cvImageBuffer: pixelBuffer)
     var filters: [CIFilter] = []
+
+    filter.setValue(ciImage, forKey: kCIInputImageKey)
+    filter.setValue(0.0, forKey: "inputAmount")
     
     if let landmarks = results.first?.landmarks {
       if let result = landmarks.leftPupil?.pointsInImage(imageSize: size).first,
@@ -83,6 +127,7 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         filter.setValue(0.5, forKey: kCIInputScaleKey)
         filters.append(filter)
       }
+      
       if let result = landmarks.rightPupil?.pointsInImage(imageSize: size).first,
          let rightEye = landmarks.rightEye, rightEye.pointCount > 1 {
         
@@ -100,15 +145,12 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
       }
     }
     
-    
-    let filter = CIFilter(name: "CIAffineTransform")!
-    filter.setValue(ciImage, forKey: kCIInputImageKey)
-    let outputImage = filters.reduce(into: filter, { (result, filter) in
+    let lastFilter: CIFilter = filters.reduce(into: filter as CIFilter, { (result, filter) in
       filter.setValue(result.outputImage!, forKey: kCIInputImageKey)
       result = filter
-    }).outputImage!
+    })
+    let outputImage = lastFilter.outputImage!
     
-    let context = CIContext()
     var resultPixelBuffer: CVPixelBuffer? = nil
     let options = [
       kCVPixelBufferCGImageCompatibilityKey as String: true,
@@ -128,37 +170,22 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
                                                  imageBuffer: resultPixelBuffer!,
                                                  formatDescriptionOut: &videoInfo)
     
-    var resultSampleBuffer: CMSampleBuffer? = nil
-    CMSampleBufferCreateForImageBuffer(allocator: kCFAllocatorDefault,
-                                       imageBuffer: resultPixelBuffer!,
-                                       dataReady: true,
-                                       makeDataReadyCallback: nil,
-                                       refcon: nil,
-                                       formatDescription: videoInfo!,
-                                       sampleTiming: &sampleTime,
-                                       sampleBufferOut: &resultSampleBuffer)
-    
-    displayView.displayLayer.enqueue(resultSampleBuffer!)
+    DispatchQueue.main.async { [weak self] in
+      var resultSampleBuffer: CMSampleBuffer? = nil
+      CMSampleBufferCreateForImageBuffer(allocator: kCFAllocatorDefault,
+                                         imageBuffer: resultPixelBuffer!,
+                                         dataReady: true,
+                                         makeDataReadyCallback: nil,
+                                         refcon: nil,
+                                         formatDescription: videoInfo!,
+                                         sampleTiming: &sampleTime,
+                                         sampleBufferOut: &resultSampleBuffer)
+      self?.displayView.displayLayer.enqueue(resultSampleBuffer!)
+    }
   }
 }
 
 class SampleBufferDisplayView: UIView {
   override class var layerClass: AnyClass { return AVSampleBufferDisplayLayer.self }
   var displayLayer: AVSampleBufferDisplayLayer { return layer as! AVSampleBufferDisplayLayer }
-}
-
-extension SIMD2 where Scalar == Double {
-  init(point: CGPoint) {
-    self = SIMD2.init(Double(point.x), Double(point.y))
-  }
-}
-
-extension Array where Element == CGPoint {
-  var size: CGSize? {
-    guard let minX = self.min(by: { $0.x > $1.x })?.x else { return nil }
-    guard let minY = self.min(by: { $0.y > $1.y })?.y else { return nil }
-    guard let maxX = self.max(by: { $0.x < $1.x })?.x else { return nil }
-    guard let maxY = self.max(by: { $0.y < $1.y })?.y else { return nil }
-    return CGSize(width: maxX - minX, height: maxY - minY)
-  }
 }

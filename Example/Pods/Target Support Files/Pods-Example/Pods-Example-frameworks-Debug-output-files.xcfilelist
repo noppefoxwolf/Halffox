@@ -1,0 +1,2 @@
+${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Vivid.framework
+${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/YUCIHighPassSkinSmoothing.framework
