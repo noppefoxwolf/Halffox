@@ -147,24 +147,16 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
       faceContour: do {
         if let faceContour = landmarks.faceContour {
           
-          UIGraphicsBeginImageContext(size)
+          UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
           let ctx = UIGraphicsGetCurrentContext()!
+          ctx.setStrokeColorSpace(CGColorSpaceCreateDeviceRGB())
+          ctx.setFillColorSpace(CGColorSpaceCreateDeviceRGB())
           
-//          UIColor.green.setFill()
-//          ctx.fill(.init(x: 0, y: 0, width: width, height: height))
+          UIColor(red: 0.0, green: 0, blue: 0, alpha: 1).setFill()
+          ctx.fill(.init(x: 0, y: 0, width: width, height: height))
           
-          let colors = [
-            UIColor(red: 0, green: 0, blue: 0, alpha: 1).cgColor,
-            UIColor(red: 0.5, green: 0, blue: 0, alpha: 1).cgColor,
-            UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor,
-          ] as CFArray
-          let locations = [0, 0.5, 1] as [CGFloat]
-          let space = CGColorSpaceCreateDeviceRGB()
-          let gradient = CGGradient(colorsSpace: space, colors: colors, locations: locations)!
-          ctx.drawLinearGradient(gradient, start: .init(x: width / 2, y: 0), end: .init(x: width / 2, y: height), options: [])
-          
-          UIColor.white.setStroke()
-          ctx.setLineWidth(2.0)
+          UIColor(red: 0.1, green: 0, blue: 0, alpha: 1).setStroke()
+          ctx.setLineWidth(10.0)
           
           let points = faceContour.pointsInImage(imageSize: size)
           ctx.move(to: points[0])
