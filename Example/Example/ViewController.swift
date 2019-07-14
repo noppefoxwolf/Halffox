@@ -80,7 +80,7 @@ class ViewController: UIViewController {
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-    print("drop")
+//    print("drop")
     DispatchQueue.main.async { [weak self] in
       self?.displayView.displayLayer.enqueue(sampleBuffer)
     }
@@ -142,6 +142,42 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
         filter.setValue(eyeSize * enlargeEye, forKey: kCIInputRadiusKey)
         filter.setValue(0.5, forKey: kCIInputScaleKey)
         filters.append(filter)
+      }
+      
+      faceContour: do {
+        if let faceContour = landmarks.faceContour {
+          
+          UIGraphicsBeginImageContext(size)
+          let ctx = UIGraphicsGetCurrentContext()!
+          
+//          UIColor.green.setFill()
+//          ctx.fill(.init(x: 0, y: 0, width: width, height: height))
+          
+          let colors = [
+            UIColor(red: 0, green: 0, blue: 0, alpha: 1).cgColor,
+            UIColor(red: 0.5, green: 0, blue: 0, alpha: 1).cgColor,
+            UIColor(red: 1, green: 0, blue: 0, alpha: 1).cgColor,
+          ] as CFArray
+          let locations = [0, 0.5, 1] as [CGFloat]
+          let space = CGColorSpaceCreateDeviceRGB()
+          let gradient = CGGradient(colorsSpace: space, colors: colors, locations: locations)!
+          ctx.drawLinearGradient(gradient, start: .init(x: width / 2, y: 0), end: .init(x: width / 2, y: height), options: [])
+          
+          UIColor.white.setStroke()
+          ctx.setLineWidth(2.0)
+          
+          let points = faceContour.pointsInImage(imageSize: size)
+          ctx.move(to: points[0])
+          points.forEach({ ctx.addLine(to: $0) })
+          ctx.strokePath()
+          
+          let cgImage = ctx.makeImage()!
+          UIGraphicsEndImageContext()
+          let ciImage = CIImage(cgImage: cgImage).oriented(.downMirrored)
+          let filter = MetalFilter()
+          filter.subImage = ciImage
+          filters.append(filter)
+        }
       }
     }
     

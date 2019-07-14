@@ -7,14 +7,27 @@
 //
 
 #include <metal_stdlib>
+#include <CoreImage/CoreImage.h>
 using namespace metal;
 
-#include <CoreImage/CoreImage.h>
 extern "C" {
   namespace coreimage {
-    half4 grayscale(sample_h s) {
-      half y = 0.2126 * s.r + 0.7152 * s.g + 0.0722 * s.b;
-      return half4(y, y, y, s.a);
+//    half4 grayscale(sample_h s) {
+//      half y = 0.2126 * s.r + 0.7152 * s.g + 0.0722 * s.b;
+//      return half4(y, y, y, s.a);
+//    }
+    
+    half4 grayscale(sampler_h s1, sampler_h s2) {
+//    half y = 0.2126 * s.r + 0.7152 * s.g + 0.0722 * s.b;
+//    half4(y, y, y, s.a);
+      
+//    return s * s2;
+      half4 s2s = s2.sample(s2.coord()); //移動量テクスチャ
+      half4 s1s = s1.sample(s1.coord());
+      float x = s1.coord().x + float(s2s.r - 0.5);
+      float y = s1.coord().y + float(s2s.g - 0.5);
+      half4 s = s1.sample(float2(x, y));
+      return s;
     }
   }
 }

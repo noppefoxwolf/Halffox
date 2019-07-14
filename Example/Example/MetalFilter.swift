@@ -5,6 +5,7 @@ class MetalFilter: CIFilter {
   private let kernel: CIColorKernel
   
   var inputImage: CIImage?
+  var subImage: CIImage?
   
   override init() {
     guard let url = Bundle.main.url(forResource: "default", withExtension: "metallib") else { preconditionFailure() }
@@ -18,8 +19,10 @@ class MetalFilter: CIFilter {
   }
   
   override var outputImage: CIImage? {
-    guard let inputImage = inputImage else {return nil}
-    return kernel.apply(extent: inputImage.extent, arguments: [inputImage])
+    guard let inputImage = inputImage else { return nil }
+    guard let subImage = subImage else { return nil }
+    //return kernel.apply(extent: inputImage.extent, arguments: [inputImage, subImage])
+    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, arguments: [inputImage, subImage])
   }
   
   override func setValue(_ value: Any?, forKey key: String) {
