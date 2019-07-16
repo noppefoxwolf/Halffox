@@ -29,7 +29,7 @@ class MetalFilter: CIFilter {
 //    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, arguments: [inputImage])
     
     let location = CIVector(x: 300, y: 300)
-    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [location])
+    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [])
   }
   
   override func setValue(_ value: Any?, forKey key: String) {

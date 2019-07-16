@@ -36,7 +36,7 @@ extern "C" {
     
     //https://lensstudio.snapchat.com/templates/face/distort/
     //https://ccrma.stanford.edu/~jacobliu/368Report/index.html
-    float2 warp(float2 fromLocation, float2 toLocation, destination dest) {
+    float2 warp(destination dest) {
 //      float dist = distance(location, dest.coord());
 //      if (dist < 100.0) {
 //        return dest.coord() * 2.0;

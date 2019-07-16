@@ -9,62 +9,7 @@
 import UIKit
 import AVFoundation
 
-import ObjectiveC
-
-extension AVCaptureDevice {
-  @objc dynamic static func dummyDefault(for mediaType: AVMediaType) -> AVCaptureDevice? {
-    switch mediaType {
-    case .video:
-      return DummyVideoDevice.make()
-    default:
-      return dummyDefault(for: mediaType)
-    }
-  }
-  
-  @objc dynamic static func dummyDefault(_ deviceType: AVCaptureDevice.DeviceType, for mediaType: AVMediaType?, position: AVCaptureDevice.Position) -> AVCaptureDevice? {
-    switch mediaType {
-    case .some(.video):
-      return DummyVideoDevice.make()
-    default:
-      return dummyDefault(deviceType, for: mediaType, position: position)
-    }
-  }
-  
-  //TODO: support devices
-  
-  static let originalMethod = class_getClassMethod(AVCaptureDevice.self, #selector(AVCaptureDevice.default(for:)))!
-  static let originalMethod2 = class_getClassMethod(AVCaptureDevice.self, #selector(AVCaptureDevice.default(_:for:position:)))!
-  static let swizzledMethod = class_getClassMethod(AVCaptureDevice.self, #selector(AVCaptureDevice.dummyDefault(for:)))!
-  static let swizzledMethod2 = class_getClassMethod(AVCaptureDevice.self, #selector(AVCaptureDevice.dummyDefault(_:for:position:)))!
-  
-  static func install() {
-    method_exchangeImplementations(AVCaptureDevice.originalMethod, AVCaptureDevice.swizzledMethod)
-    method_exchangeImplementations(AVCaptureDevice.originalMethod2, AVCaptureDevice.swizzledMethod2)
-  }
-}
-
-extension AVCaptureDeviceInput {
-  @objc static let originalMethod = class_getClassMethod(AVCaptureDeviceInput.self, #selector(AVCaptureDeviceInput.init(device:)))!
-  @objc static let swizzledMethod = class_getClassMethod(AVCaptureDeviceInput.self, #selector(AVCaptureDeviceInput.dummyInit(device:)))!
-  
-  static func install() {
-    
-    method_exchangeImplementations(AVCaptureDeviceInput.originalMethod, AVCaptureDeviceInput.swizzledMethod)
-  }
-  
-  @objc static func dummyInit(device: AVCaptureDevice) throws -> AVCaptureDeviceInput {
-    return InstanceFactory.make() as DummyAVCaptureDeviceInput
-  }
-}
-
-class DummyAVCaptureDeviceInput: AVCaptureDeviceInput {
-  override init(device: AVCaptureDevice) throws {
-    try super.init(device: device)
-  }
-}
-
-
-
+class AVCaptureSession: AVFoundation.AVCaptureSession {}
 
 protocol Output: class {
   func output(_ sampleBuffer: CMSampleBuffer)
@@ -82,7 +27,7 @@ class CameraSource: NSObject, Source, AVCaptureVideoDataOutputSampleBufferDelega
     device.activeVideoMaxFrameDuration = CMTime(value: 1, timescale: 30)
     device.activeVideoMinFrameDuration = CMTime(value: 1, timescale: 30)
     try! device.lockForConfiguration()
-    let input = try! AVCaptureDeviceInput(device: device)
+    let input = try! AVCaptureDeviceInput.init(device: device)
     return input
   }()
   let output = AVCaptureVideoDataOutput()
@@ -123,7 +68,6 @@ class ImageSource: NSObject, Source {
   }
   
   @objc private func update(_ displayLink: CADisplayLink) {
-    print("hoge")
     let image = UIImage(named: "lena.jpg")!
     delegate?.output(image.cmSampleBuffer)
   }

@@ -30,8 +30,11 @@ class ViewController: UIViewController {
   let enlargeEye: CGFloat = 1.5
   let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
 //  let filter = MetalFilter()
-//  var source: Source = ImageSource()
+  #if targetEnvironment(simulator)
+  var source: Source = ImageSource()
+  #else
   var source: Source = CameraSource()
+  #endif
   
   override func loadView() {
     super.loadView()
@@ -58,8 +61,7 @@ class ViewController: UIViewController {
 
 extension ViewController: Output {
   func output(_ sampleBuffer: CMSampleBuffer) {
-    displayView.displayLayer.enqueue(sampleBuffer)
-    return
+    
     let _pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
     guard let pixelBuffer = _pixelBuffer else { return }
     
