@@ -13,17 +13,6 @@ import YUCIHighPassSkinSmoothing
 
 class ViewController: UIViewController {
   private let displayView: SampleBufferDisplayView = .init()
-  let session = AVCaptureSession()
-  let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)!
-  lazy var input: AVCaptureDeviceInput = {
-    device.unlockForConfiguration()
-    device.activeVideoMaxFrameDuration = CMTime(value: 1, timescale: 30)
-    device.activeVideoMinFrameDuration = CMTime(value: 1, timescale: 30)
-    try! device.lockForConfiguration()
-    let input = try! AVCaptureDeviceInput(device: device)
-    return input
-  }()
-  let output = AVCaptureVideoDataOutput()
   
   private var request: VNDetectFaceLandmarksRequest!
   private lazy var sequenceRequestHandler = VNSequenceRequestHandler()
@@ -32,14 +21,17 @@ class ViewController: UIViewController {
   private let sharedQueue = DispatchQueue(label: "com.halffox.shared", qos: .userInteractive)
   private lazy var renderQueue = sharedQueue
   private lazy var visionQueue = sharedQueue
+  let colorSpace: CGColorSpace = CGColorSpace(name: CGColorSpace.displayP3)!
   
-  let context = CIContext(mtlDevice: MTLCreateSystemDefaultDevice()!)
+  let context = CIContext()
 //  private lazy var renderQueue = DispatchQueue(label: "com.halffox.render", qos: .background)
 //  private lazy var visionQueue = DispatchQueue(label: "com.halffox.vision", qos: .default)
   
   let enlargeEye: CGFloat = 1.5
   let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
 //  let filter = MetalFilter()
+//  var source: Source = ImageSource()
+  var source: Source = CameraSource()
   
   override func loadView() {
     super.loadView()
@@ -55,21 +47,7 @@ class ViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
-//    VNDetectFaceLandmarksRequest.revision(VNDetectFaceLandmarksRequestRevision1, supportsConstellation: VNRequestFaceLandmarksConstellation.constellation76Points)
-    
-    session.addInput(input)
-    session.addOutput(output)
-    session.sessionPreset = .iFrame960x540
-    output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA]
-    output.setSampleBufferDelegate(self, queue: renderQueue)
-    
-    let connection = output.connection(with: .video)!
-    connection.videoOrientation = .landscapeRight
-    connection.isVideoMirrored = true
-    
-    session.startRunning()
-    
-    
+    source.delegate = self
     
     request = VNDetectFaceLandmarksRequest { [weak self] (request, error) in
       guard let results = request.results as? [VNFaceObservation] else { return }
@@ -78,17 +56,10 @@ class ViewController: UIViewController {
   }
 }
 
-extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
-  func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-//    print("drop")
-    DispatchQueue.main.async { [weak self] in
-      self?.displayView.displayLayer.enqueue(sampleBuffer)
-    }
-  }
-  
-  func captureOutput(_ output: AVCaptureOutput,
-                     didOutput sampleBuffer: CMSampleBuffer,
-                     from connection: AVCaptureConnection) {
+extension ViewController: Output {
+  func output(_ sampleBuffer: CMSampleBuffer) {
+    displayView.displayLayer.enqueue(sampleBuffer)
+    return
     let _pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
     guard let pixelBuffer = _pixelBuffer else { return }
     
@@ -146,27 +117,31 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
       
       faceContour: do {
         if let faceContour = landmarks.faceContour {
-          
+          // 17 point
+          //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
+          //CIWarpKernelでいけそうかも
           UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
           let ctx = UIGraphicsGetCurrentContext()!
-          ctx.setStrokeColorSpace(CGColorSpaceCreateDeviceRGB())
-          ctx.setFillColorSpace(CGColorSpaceCreateDeviceRGB())
           
-          UIColor(red: 0.0, green: 0, blue: 0, alpha: 1).setFill()
+          
+          UIColor(displayP3Red: 0.5, green: 0, blue: 0, alpha: 1.0).setFill()
           ctx.fill(.init(x: 0, y: 0, width: width, height: height))
           
-          UIColor(red: 0.1, green: 0, blue: 0, alpha: 1).setStroke()
-          ctx.setLineWidth(10.0)
-          
-          let points = faceContour.pointsInImage(imageSize: size)
-          ctx.move(to: points[0])
-          points.forEach({ ctx.addLine(to: $0) })
-          ctx.strokePath()
+//          ctx.setStrokeColor(red: 0.6, green: 0, blue: 0, alpha: 1)
+//          ctx.setLineWidth(10.0)
+//          let points = faceContour.pointsInImage(imageSize: size)
+//          ctx.move(to: points[0])
+//          points.forEach({ ctx.addLine(to: $0) })
+//          ctx.strokePath()
           
           let cgImage = ctx.makeImage()!
           UIGraphicsEndImageContext()
-          let ciImage = CIImage(cgImage: cgImage).oriented(.downMirrored)
+          
+//          let ciImage = CIImage(cgImage: cgImage).oriented(.downMirrored)
+          let ciImage = CIImage(cgImage: cgImage, options: [CIImageOption.colorSpace : colorSpace]).oriented(.downMirrored)
+          
           let filter = MetalFilter()
+          filter.locations = faceContour.pointsInImage(imageSize: size)
           filter.subImage = ciImage
           filters.append(filter)
         }
@@ -188,7 +163,8 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
     CVPixelBufferCreate(kCFAllocatorSystemDefault, width, height, kCVPixelFormatType_32BGRA, options as CFDictionary, &resultPixelBuffer)
     
     //context.render(ciImage, to: resultPixelBuffer!)
-    context.render(outputImage, to: resultPixelBuffer!)
+//    context.render(outputImage, to: resultPixelBuffer!)
+    context.render(outputImage, to: resultPixelBuffer!, bounds: outputImage.extent, colorSpace: colorSpace)
     
     var sampleTime: CMSampleTimingInfo = .init(duration: CMSampleBufferGetDuration(sampleBuffer),
                                                presentationTimeStamp: CMSampleBufferGetPresentationTimeStamp(sampleBuffer),
@@ -211,9 +187,4 @@ extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
       self?.displayView.displayLayer.enqueue(resultSampleBuffer!)
     }
   }
-}
-
-class SampleBufferDisplayView: UIView {
-  override class var layerClass: AnyClass { return AVSampleBufferDisplayLayer.self }
-  var displayLayer: AVSampleBufferDisplayLayer { return layer as! AVSampleBufferDisplayLayer }
 }
