@@ -29,12 +29,8 @@ class ViewController: UIViewController {
   
   let enlargeEye: CGFloat = 1.5
   let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
-//  let filter = MetalFilter()
-  #if targetEnvironment(simulator)
-  var source: Source = ImageSource()
-  #else
-  var source: Source = CameraSource()
-  #endif
+  //  let filter = MetalFilter()
+  lazy var source: Source = CameraSource()
   
   override func loadView() {
     super.loadView()

@@ -7,4 +7,5 @@ target 'Example' do
 
   # Pods for Example
   pod "YUCIHighPassSkinSmoothing"
+  pod "Holo", git: "git@github.com:noppefoxwolf/Holo.git", branch: "master"
 end

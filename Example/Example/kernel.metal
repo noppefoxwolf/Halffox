@@ -8,6 +8,9 @@
 
 #include <metal_stdlib>
 #include <CoreImage/CoreImage.h>
+#include <metal_common>
+#include <simd/simd.h>
+
 using namespace metal;
 
 extern "C" {
@@ -36,29 +39,19 @@ extern "C" {
     
     //https://lensstudio.snapchat.com/templates/face/distort/
     //https://ccrma.stanford.edu/~jacobliu/368Report/index.html
-    float2 warp(destination dest) {
-//      float dist = distance(location, dest.coord());
-//      if (dist < 100.0) {
-//        return dest.coord() * 2.0;
-//      } else {
-//        return dest.coord();
-//      }
-      return dest.coord();
+    
+    // x どのXか
+    // m 膨らむ箇所
+    // s ながらかさ
+    // ガウス関数
+    float f(float x, float m, float s) {
+      return exp( -(pow(x, 2) - pow(m, 2)) / (2 * pow(s, 2)));
     }
-//    "kernel vec2 gooWarp(float radius, float force,  vec2 location, vec2 direction)" +
-//    "{ " +
-//    " float dist = distance(location, destCoord()); " +
-//
-//    "  if (dist < radius)" +
-//    "  { " +
-//
-//    "     float normalisedDistance = 1.0 - (dist / radius); " +
-//    "     float smoothedDistance = smoothstep(0.0, 1.0, normalisedDistance); " +
-//
-//    "    return destCoord() + (direction * force) * smoothedDistance; " +
-//    "  } else { " +
-//    "  return destCoord();" +
-//    "  }" +
-//    "}")!
+    
+    float2 warp(destination dest) {
+      float2 c = dest.coord();
+      float y = f(c.x, 128, 20);
+      return float2(c.x, c.y + (1.0 - y));
+    }
   }
 }

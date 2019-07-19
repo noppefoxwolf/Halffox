@@ -16,7 +16,6 @@
 		370B371122D0E1AD00D935FC /* lena.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 370B371022D0E1AD00D935FC /* lena.jpg */; };
 		3744058D22DE0F0900DD6CFF /* Source.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3744058C22DE0F0900DD6CFF /* Source.swift */; };
 		3744058F22DE0F2200DD6CFF /* SampleBufferDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3744058E22DE0F2200DD6CFF /* SampleBufferDisplayView.swift */; };
-		3744059122DE28B700DD6CFF /* DummyVideoDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3744059022DE28B700DD6CFF /* DummyVideoDevice.swift */; };
 		3748FC7B22D90BC800905152 /* MetalFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3748FC7A22D90BC800905152 /* MetalFilter.swift */; };
 		3748FC7D22D90FF500905152 /* kernel.metal in Sources */ = {isa = PBXBuildFile; fileRef = 3748FC7C22D90FF500905152 /* kernel.metal */; };
 		BEE06091D7DDFBCA14E87799 /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04FE5A132A11D24159E7EEA7 /* Pods_Example.framework */; };
@@ -35,7 +34,6 @@
 		370B371022D0E1AD00D935FC /* lena.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = lena.jpg; sourceTree = "<group>"; };
 		3744058C22DE0F0900DD6CFF /* Source.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Source.swift; sourceTree = "<group>"; };
 		3744058E22DE0F2200DD6CFF /* SampleBufferDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleBufferDisplayView.swift; sourceTree = "<group>"; };
-		3744059022DE28B700DD6CFF /* DummyVideoDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyVideoDevice.swift; sourceTree = "<group>"; };
 		3748FC7A22D90BC800905152 /* MetalFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalFilter.swift; sourceTree = "<group>"; };
 		3748FC7C22D90FF500905152 /* kernel.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = kernel.metal; sourceTree = "<group>"; };
 		AB1B0E21DBBD3D94339277DF /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
@@ -87,7 +85,6 @@
 				3748FC7A22D90BC800905152 /* MetalFilter.swift */,
 				3744058C22DE0F0900DD6CFF /* Source.swift */,
 				3744058E22DE0F2200DD6CFF /* SampleBufferDisplayView.swift */,
-				3744059022DE28B700DD6CFF /* DummyVideoDevice.swift */,
 			);
 			path = Example;
 			sourceTree = "<group>";
@@ -229,7 +226,6 @@
 				3748FC7B22D90BC800905152 /* MetalFilter.swift in Sources */,
 				3744058D22DE0F0900DD6CFF /* Source.swift in Sources */,
 				370B36FD22D0A40400D935FC /* AppDelegate.swift in Sources */,
-				3744059122DE28B700DD6CFF /* DummyVideoDevice.swift in Sources */,
 				370B36FF22D0A40400D935FC /* SceneDelegate.swift in Sources */,
 				3744058F22DE0F2200DD6CFF /* SampleBufferDisplayView.swift in Sources */,
 				3748FC7D22D90FF500905152 /* kernel.metal in Sources */,

@@ -9,12 +9,29 @@
 import UIKit
 import AVFoundation
 
+#if targetEnvironment(simulator)
+import Holo
+typealias AVCaptureDevice = AnyCaptureDevice
+typealias AVCaptureDeviceInput = AnyCaptureDeviceInput
+typealias AVCaptureSession = AnyCaptureSessionContainer
+typealias AVCaptureVideoDataOutput = AnyCaptureVideoDataOutput
+typealias AVCaptureConnection = AnyCaptureConnection
+typealias AVCaptureVideoDataOutputSampleBufferDelegate = AnyCaptureVideoDataOutputSampleBufferDelegate
+typealias AVCaptureOutput = AnyCaptureOutput
+typealias AVCaptureInput =  AnyCaptureInput
+#endif
+import Holo
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+    #if targetEnvironment(simulator)
+    HoloSettings.shared.mode = .image(UIImage(named: "lena.jpg")!)
+    #endif
+    
     return true
   }
 
