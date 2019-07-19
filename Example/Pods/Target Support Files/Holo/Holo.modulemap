@@ -1,0 +1,6 @@
+framework module Holo {
+  umbrella header "Holo-umbrella.h"
+
+  export *
+  module * { export * }
+}
