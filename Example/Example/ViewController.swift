@@ -31,6 +31,7 @@ class ViewController: UIViewController {
   let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
   //  let filter = MetalFilter()
   lazy var source: Source = CameraSource()
+  var isEnabled: Bool = true
   
   override func loadView() {
     super.loadView()
@@ -53,11 +54,24 @@ class ViewController: UIViewController {
       self?.results = results
     }
   }
+  
+  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    isEnabled = false
+  }
+  
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    isEnabled = true
+  }
 }
 
 extension ViewController: Output {
   func output(_ sampleBuffer: CMSampleBuffer) {
-    
+    if !isEnabled {
+      DispatchQueue.main.async { [weak self] in
+        self?.displayView.displayLayer.enqueue(sampleBuffer)
+      }
+      return
+    }
     let _pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
     guard let pixelBuffer = _pixelBuffer else { return }
     
@@ -138,18 +152,40 @@ extension ViewController: Output {
 //          let ciImage = CIImage(cgImage: cgImage).oriented(.downMirrored)
           let ciImage = CIImage(cgImage: cgImage, options: [CIImageOption.colorSpace : colorSpace]).oriented(.downMirrored)
           
-          let filter = MetalFilter()
-          //let points = faceContour.pointsInImage(imageSize: size)[0..<6]
-          let points = faceContour.pointsInImage(imageSize: size)[9..<17]
-          let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
-          let x0 = points.map({ $0.x }).min()!
-          let x1 = points.map({ $0.x }).max()!
-          filter.subImage = ciImage
-          filter.a0 = a0
-          filter.a1 = a1
-          filter.x0 = x0
-          filter.x1 = x1
-          filters.append(filter)
+          left: do {
+            let filter = MetalFilter(isReverse: false)
+            let points = faceContour.pointsInImage(imageSize: size)[8..<17]
+            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+            let x0 = points.map({ $0.x }).min()!
+            let x1 = points.map({ $0.x }).max()!
+            let y0 = points.map({ $0.y }).min()!
+            let y1 = points.map({ $0.y }).max()!
+            filter.subImage = ciImage
+            filter.a0 = a0
+            filter.a1 = a1
+            filter.x0 = x0
+            filter.x1 = x1
+            filter.y0 = y0
+            filter.y1 = y1
+            filters.append(filter)
+          }
+          right: do {
+            let filter = MetalFilter(isReverse: true)
+            let points = faceContour.pointsInImage(imageSize: size)[0..<9]
+            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+            let x0 = points.map({ $0.x }).min()!
+            let x1 = points.map({ $0.x }).max()!
+            let y0 = points.map({ $0.y }).min()!
+            let y1 = points.map({ $0.y }).max()!
+            filter.subImage = ciImage
+            filter.a0 = a0
+            filter.a1 = a1
+            filter.x0 = x0
+            filter.x1 = x1
+            filter.y0 = y0
+            filter.y1 = y1
+            filters.append(filter)
+          }
         }
       }
     }

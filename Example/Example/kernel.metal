@@ -62,11 +62,28 @@ extern "C" {
       return float2((A02*A11-A01*A12) / (A00*A11-A01*A01), (A00*A12-A01*A02) / (A00*A11-A01*A01));
     }
     
-    float2 warp(float a0, float a1, float x0, float x1, destination dest) {
+    float2 warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
       float2 location = dest.coord();
-      float mu = (location.y - a0) / a1;
-      float y = gauss(location.x, mu, 20);
-      return float2(location.x - (y * 50), location.y);
+      if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
+        float mu = (location.y - a0) / a1;
+        float y = gauss(location.x, mu, 20);
+        float offset =  y * 5;
+        return float2(location.x - offset, location.y);
+      } else {
+        return location;
+      }
     }
+    
+    float2 reverse_warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
+          float2 location = dest.coord();
+          if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
+            float mu = (location.y - a0) / a1;
+            float y = gauss(location.x, mu, 20);
+            float offset =  y * 5;
+            return float2(location.x + offset, location.y);
+          } else {
+            return location;
+          }
+        }
   }
 }
