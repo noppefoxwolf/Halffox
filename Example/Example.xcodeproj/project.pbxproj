@@ -19,6 +19,7 @@
 		3748FC7B22D90BC800905152 /* MetalFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3748FC7A22D90BC800905152 /* MetalFilter.swift */; };
 		3748FC7D22D90FF500905152 /* kernel.metal in Sources */ = {isa = PBXBuildFile; fileRef = 3748FC7C22D90FF500905152 /* kernel.metal */; };
 		BEE06091D7DDFBCA14E87799 /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04FE5A132A11D24159E7EEA7 /* Pods_Example.framework */; };
+		CD7DA14922E35D29009E3AAC /* monariza.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CD7DA14822E35D29009E3AAC /* monariza.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		3748FC7A22D90BC800905152 /* MetalFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalFilter.swift; sourceTree = "<group>"; };
 		3748FC7C22D90FF500905152 /* kernel.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = kernel.metal; sourceTree = "<group>"; };
 		AB1B0E21DBBD3D94339277DF /* Pods-Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.release.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.release.xcconfig"; sourceTree = "<group>"; };
+		CD7DA14822E35D29009E3AAC /* monariza.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = monariza.jpg; sourceTree = "<group>"; };
 		D8E5B977F2F4EDA4849684CC /* Pods-Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example.debug.xcconfig"; path = "Target Support Files/Pods-Example/Pods-Example.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -74,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				370B371022D0E1AD00D935FC /* lena.jpg */,
+				CD7DA14822E35D29009E3AAC /* monariza.jpg */,
 				370B36FC22D0A40400D935FC /* AppDelegate.swift */,
 				370B36FE22D0A40400D935FC /* SceneDelegate.swift */,
 				370B370022D0A40400D935FC /* ViewController.swift */,
@@ -167,6 +170,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				370B370922D0A40600D935FC /* LaunchScreen.storyboard in Resources */,
+				CD7DA14922E35D29009E3AAC /* monariza.jpg in Resources */,
 				370B370622D0A40600D935FC /* Assets.xcassets in Resources */,
 				370B370422D0A40400D935FC /* Main.storyboard in Resources */,
 				370B371122D0E1AD00D935FC /* lena.jpg in Resources */,

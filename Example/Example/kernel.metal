@@ -44,14 +44,29 @@ extern "C" {
     // m 膨らむ箇所
     // s ながらかさ
     // ガウス関数
-    float f(float x, float m, float s) {
-      return exp( -(pow(x, 2) - pow(m, 2)) / (2 * pow(s, 2)));
+    float gauss(float x, float m, float s) {
+      return exp( -pow(x - m, 2) / (2 * pow(s, 2)));
     }
     
-    float2 warp(destination dest) {
-      float2 c = dest.coord();
-      float y = f(c.x, 128, 20);
-      return float2(c.x, c.y + (1.0 - y));
+    //https://algorithm.joho.info/programming/c-language/least-square-method/
+    float2 fit(float x[], float y[], int n) {
+      int i = 0;
+      float A00 = 0, A01 = 0, A02 = 0, A11 = 0, A12 = 0;
+      for (i = 0; i < n; i++) {
+        A00 += 1.0;
+        A01 += x[i];
+        A02 += y[i];
+        A11 += x[i] * x[i];
+        A12 += x[i] * y[i];
+      }
+      return float2((A02*A11-A01*A12) / (A00*A11-A01*A01), (A00*A12-A01*A02) / (A00*A11-A01*A01));
+    }
+    
+    float2 warp(float a0, float a1, float x0, float x1, destination dest) {
+      float2 location = dest.coord();
+      float mu = (location.y - a0) / a1;
+      float y = gauss(location.x, mu, 20);
+      return float2(location.x - (y * 50), location.y);
     }
   }
 }

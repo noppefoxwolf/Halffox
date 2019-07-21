@@ -139,8 +139,16 @@ extension ViewController: Output {
           let ciImage = CIImage(cgImage: cgImage, options: [CIImageOption.colorSpace : colorSpace]).oriented(.downMirrored)
           
           let filter = MetalFilter()
-          filter.locations = faceContour.pointsInImage(imageSize: size)
+          //let points = faceContour.pointsInImage(imageSize: size)[0..<6]
+          let points = faceContour.pointsInImage(imageSize: size)[9..<17]
+          let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+          let x0 = points.map({ $0.x }).min()!
+          let x1 = points.map({ $0.x }).max()!
           filter.subImage = ciImage
+          filter.a0 = a0
+          filter.a1 = a1
+          filter.x0 = x0
+          filter.x1 = x1
           filters.append(filter)
         }
       }
@@ -153,11 +161,11 @@ extension ViewController: Output {
     let outputImage = lastFilter.outputImage!
     
     var resultPixelBuffer: CVPixelBuffer? = nil
-    let options = [
+    let options: [String : Any] = [
       kCVPixelBufferCGImageCompatibilityKey as String: true,
       kCVPixelBufferCGBitmapContextCompatibilityKey as String: true,
       kCVPixelBufferIOSurfacePropertiesKey as String: [:]
-    ] as [String : Any]
+    ]
     CVPixelBufferCreate(kCFAllocatorSystemDefault, width, height, kCVPixelFormatType_32BGRA, options as CFDictionary, &resultPixelBuffer)
     
     //context.render(ciImage, to: resultPixelBuffer!)
@@ -186,3 +194,44 @@ extension ViewController: Output {
     }
   }
 }
+
+func hgoe() {
+  let points: [CIVector] = [
+    (204.3761064466671, 143.07658028616788),
+    (203.24432600698492, 124.82329501915774),
+    (201.1258521685195, 106.2884474237726),
+    (196.79747462572595, 88.18849337624306),
+    (187.87309004860253, 71.91756985917254),
+    (174.54193821790432, 59.06172074146389),
+    (158.57906429723153, 49.54490069592134),
+    (141.18167704800362, 43.152921893414714),
+    (122.62187812232514, 41.47481146651353),
+    (108.65171055783776, 46.24232498345509),
+    (98.15432445483839, 56.43128953932455),
+    (89.19246037158337, 68.24847280123595),
+    (82.51992678959687, 81.54666542117138),
+    (78.34419345140213, 95.73596010171786),
+    (75.71057003680244, 110.39235051174546),
+    (74.92830513632043, 125.24046620859735),
+    (75.45159605759864, 139.93187249814218)
+  ].map({ CIVector.init(x: CGFloat($0.0), y: CGFloat($0.1)) })
+}
+
+func fit(points: [CIVector]) -> (a0: CGFloat, a1: CGFloat) {
+    
+    var A00: CGFloat = 0
+    var A01: CGFloat = 0
+    var A02: CGFloat = 0
+    var A11: CGFloat = 0
+    var A12: CGFloat = 0
+    
+    for point in points {
+      A00 += 1.0
+      A01 += point.x
+      A02 += point.y;
+      A11 += point.x * point.x
+      A12 += point.x * point.y
+    }
+    return (a0: (A02*A11-A01*A12) / (A00*A11-A01*A01),
+            a1: (A00*A12-A01*A02) / (A00*A11-A01*A01))
+  }

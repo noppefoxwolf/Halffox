@@ -29,7 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     #if targetEnvironment(simulator)
-    HoloSettings.shared.mode = .image(UIImage(named: "lena.jpg")!)
+    HoloSettings.shared.mode = .image(UIImage(named: "monariza.jpg")!)
     #endif
     
     return true

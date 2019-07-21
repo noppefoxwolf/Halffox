@@ -1,5 +1,13 @@
 import CoreImage
 
+extension CIWarpKernel {
+  static var warp: CIWarpKernel {
+    let url = Bundle.main.url(forResource: "default", withExtension: "metallib")!
+    let data = try! Data(contentsOf: url)
+    return try! CIWarpKernel(functionName: "warp", fromMetalLibraryData: data)
+  }
+}
+
 class MetalFilter: CIFilter {
   
 //  private let kernel: CIColorKernel
@@ -7,13 +15,13 @@ class MetalFilter: CIFilter {
   
   var inputImage: CIImage?
   var subImage: CIImage?
-  var locations: [CGPoint] = []
+  var a0: CGFloat = 0
+  var a1: CGFloat = 0
+  var x0: CGFloat = 0
+  var x1: CGFloat = 0
   
   override init() {
-    guard let url = Bundle.main.url(forResource: "default", withExtension: "metallib") else { preconditionFailure() }
-    guard let data = try? Data(contentsOf: url) else { preconditionFailure() }
-    //kernel = try! CIColorKernel(functionName: "grayscale", fromMetalLibraryData: data)
-    kernel = try! CIWarpKernel(functionName: "warp", fromMetalLibraryData: data)
+    kernel = .warp
     super.init()
   }
   
@@ -23,13 +31,7 @@ class MetalFilter: CIFilter {
   
   override var outputImage: CIImage? {
     guard let inputImage = inputImage else { return nil }
-    
-//    guard let subImage = subImage else { return nil }
-    //return kernel.apply(extent: inputImage.extent, arguments: [inputImage, subImage])
-//    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, arguments: [inputImage])
-    
-    let location = CIVector(x: 300, y: 300)
-    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [])
+    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [a0, a1, x0, x1])
   }
   
   override func setValue(_ value: Any?, forKey key: String) {
