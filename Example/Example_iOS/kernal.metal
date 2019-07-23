@@ -49,6 +49,10 @@ extern "C" {
     }
     
     //https://algorithm.joho.info/programming/c-language/least-square-method/
+    // http://hooktail.sub.jp/mathInPhys/fwhmsigma/
+    // FWHM - Full Width at Half Maximum
+    // FWHM ≒ 2.35σ
+    // 2FWHM = 4.7σ
     float2 fit(float x[], float y[], int n) {
       int i = 0;
       float A00 = 0, A01 = 0, A02 = 0, A11 = 0, A12 = 0;
@@ -62,25 +66,37 @@ extern "C" {
       return float2((A02*A11-A01*A12) / (A00*A11-A01*A01), (A00*A12-A01*A02) / (A00*A11-A01*A01));
     }
     
+    //右
     float2 warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
       float2 location = dest.coord();
       if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
         float mu = (location.y - a0) / a1;
-        float y = gauss(location.x, mu, 20);
-        float offset =  y * 20;
-        return float2(location.x - offset, location.y);
+        float s = 1;
+        float g = gauss(location.x, mu, s);
+        if (location.x < mu) {
+          // 0.0 ~ 1.0
+          return float2(location.x - g * s, location.y);
+        } else {
+          // 1.0 ~ 0.0
+          return float2(location.x - (2.0 - g) * s, location.y);
+        }
       } else {
         return location;
       }
     }
     
+    //左
     float2 reverse_warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
       float2 location = dest.coord();
       if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
         float mu = (location.y - a0) / a1;
-        float y = gauss(location.x, mu, 20);
-        float offset =  y * 20;
-        return float2(location.x + offset, location.y);
+        float s = 1;
+        float g = gauss(location.x, mu, s);
+        if (mu < location.x) {
+          return float2(location.x - g * s, location.y);
+        } else {
+          return float2(location.x - (2.0 - g) * s, location.y);
+        }
       } else {
         return location;
       }

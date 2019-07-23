@@ -36,7 +36,7 @@ class CameraSource: NSObject, Source, AVCaptureVideoDataOutputSampleBufferDelega
     super.init()
     session.addInput(input)
     session.addOutput(output)
-    session.sessionPreset = .iFrame960x540
+    session.sessionPreset = .vga640x480
     output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String : kCVPixelFormatType_32BGRA]
     output.setSampleBufferDelegate(self, queue: renderQueue)
     

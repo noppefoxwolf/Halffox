@@ -132,37 +132,16 @@ extension ViewController: Output {
           // 11 point iPhoneX
           // 17 point iPadPro
           //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
-          //CIWarpKernelでいけそうかも
-          UIGraphicsBeginImageContextWithOptions(size, true, 1.0)
-          let ctx = UIGraphicsGetCurrentContext()!
-          
-          
-          UIColor(displayP3Red: 0.5, green: 0, blue: 0, alpha: 1.0).setFill()
-          ctx.fill(.init(x: 0, y: 0, width: width, height: height))
-          
-//          ctx.setStrokeColor(red: 0.6, green: 0, blue: 0, alpha: 1)
-//          ctx.setLineWidth(10.0)
-//          let points = faceContour.pointsInImage(imageSize: size)
-//          ctx.move(to: points[0])
-//          points.forEach({ ctx.addLine(to: $0) })
-//          ctx.strokePath()
-          
-          let cgImage = ctx.makeImage()!
-          UIGraphicsEndImageContext()
-          
-//          let ciImage = CIImage(cgImage: cgImage).oriented(.downMirrored)
-          let ciImage = CIImage(cgImage: cgImage, options: [CIImageOption.colorSpace : colorSpace]).oriented(.downMirrored)
-          
+
           let pointCount = faceContour.pointCount
           left: do {
             let filter = MetalFilter(isReverse: false)
-            let points = faceContour.pointsInImage(imageSize: size)[5...10]
+            let points = faceContour.pointsInImage(imageSize: size)[6...10]
             let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
             let x0 = points.map({ $0.x }).min()!
             let x1 = points.map({ $0.x }).max()!
             let y0 = points.map({ $0.y }).min()!
             let y1 = points.map({ $0.y }).max()!
-            filter.subImage = ciImage
             filter.a0 = a0
             filter.a1 = a1
             filter.x0 = x0
@@ -179,7 +158,6 @@ extension ViewController: Output {
             let x1 = points.map({ $0.x }).max()!
             let y0 = points.map({ $0.y }).min()!
             let y1 = points.map({ $0.y }).max()!
-            filter.subImage = ciImage
             filter.a0 = a0
             filter.a1 = a1
             filter.x0 = x0
