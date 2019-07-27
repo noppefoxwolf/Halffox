@@ -23,10 +23,8 @@ class MetalFilter: CIFilter {
   var subImage: CIImage?
   var a0: CGFloat = 0
   var a1: CGFloat = 0
-  var x0: CGFloat = 0
-  var x1: CGFloat = 0
-  var y0: CGFloat = 0
-  var y1: CGFloat = 0
+  var c0: CIVector = .init()
+  var j0: CIVector = .init()
   
   init(isReverse: Bool = false) {
     kernel = isReverse ? .reverseWarp : .warp
@@ -39,7 +37,7 @@ class MetalFilter: CIFilter {
   
   override var outputImage: CIImage? {
     guard let inputImage = inputImage else { return nil }
-    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [a0, a1, x0, x1, y0, y1])
+    return kernel.apply(extent: inputImage.extent, roiCallback: { _, r in r }, image: inputImage, arguments: [a0, a1, c0, j0])
   }
   
   override func setValue(_ value: Any?, forKey key: String) {

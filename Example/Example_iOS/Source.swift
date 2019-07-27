@@ -41,7 +41,8 @@ class CameraSource: NSObject, Source, AVCaptureVideoDataOutputSampleBufferDelega
     output.setSampleBufferDelegate(self, queue: renderQueue)
     
     if let connection = output.connection(with: .video) {
-      connection.videoOrientation = .landscapeRight
+      //connection.videoOrientation = .landscapeRight
+      connection.videoOrientation = .portrait
       connection.isVideoMirrored = true
     }
     
