@@ -35,7 +35,7 @@ class ViewController: UIViewController {
   override func loadView() {
     super.loadView()
     displayView.translatesAutoresizingMaskIntoConstraints = false
-    view.addSubview(displayView)
+    view.insertSubview(displayView, at: 0)
     NSLayoutConstraint.activate([
       displayView.topAnchor.constraint(equalTo: view.topAnchor),
       displayView.leftAnchor.constraint(equalTo: view.leftAnchor),
@@ -52,22 +52,24 @@ class ViewController: UIViewController {
       guard let results = request.results as? [VNFaceObservation] else { return }
       self?.results = results
     }
+    if #available(iOS 13.0, *) {
+      request.constellation = .constellation65Points
+    } else {
+      // Fallback on earlier versions
+    }
   }
   
-  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    isEnabled = false
+  @IBAction func switchAction(_ sender: UISwitch) {
+    isEnabled = sender.isOn
+    displayView.displayLayer.flushAndRemoveImage()
   }
   
-  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    isEnabled = true
-  }
 }
 
 extension ViewController: Output {
   func output(_ sampleBuffer: CMSampleBuffer) {
     if !isEnabled {
       DispatchQueue.main.async { [weak self] in
-        self?.displayView.displayLayer.flushAndRemoveImage()
         self?.displayView.displayLayer.enqueue(sampleBuffer)
       }
       return
@@ -130,13 +132,13 @@ extension ViewController: Output {
       faceContour: do {
         if let faceContour = landmarks.faceContour {
           // 11 point iPhoneX
-          // 17 point iPadPro
+          // 17 point iPadPro / XR
           //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
 
           let pointCount = faceContour.pointCount
           left: do {
             let filter = MetalFilter(isReverse: false)
-            let points = faceContour.pointsInImage(imageSize: size)[6...10]
+            let points = faceContour.pointsInImage(imageSize: size)[5...10]
             let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
             let x0 = points.map({ $0.x }).min()!
             let x1 = points.map({ $0.x }).max()!

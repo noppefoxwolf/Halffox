@@ -26,9 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   lazy var window: UIWindow? = .init(frame: UIScreen.main.bounds)
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 //    #if targetEnvironment(simulator)
-    HoloSettings.shared.mode = .image(UIImage(named: "lena.jpg")!)
+    HoloSettings.shared.mode = .image(UIImage(named: "miuFTHG3087_TP_V.jpg")!)
 //    #endif
-    window?.rootViewController = ViewController()
+    window?.rootViewController = UIStoryboard(name: "Main", bundle: nil).instantiateInitialViewController()
     window?.makeKeyAndVisible()
     return true
   }

@@ -75,10 +75,10 @@ extern "C" {
         float g = gauss(location.x, mu, s);
         if (location.x < mu) {
           // 0.0 ~ 1.0
-          return float2(location.x - g * s, location.y);
+          return float2(location.x + g * s, location.y);
         } else {
           // 1.0 ~ 0.0
-          return float2(location.x - (2.0 - g) * s, location.y);
+          return float2(location.x + (2.0 - g) * s, location.y);
         }
       } else {
         return location;
