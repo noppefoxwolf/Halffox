@@ -147,34 +147,41 @@ extension ViewController: Output {
       
       faceContour: do {
         if let faceContour = landmarks.faceContour {
-          // 11 point iPhoneX
-          // 17 point iPadPro / XR
-          //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
-
-          let pointsInImages = faceContour.pointsInImage(imageSize: size)
-          let center = landmarks.nose!.pointsInImage(imageSize: size).last!
-          left: do {
-            let filter = MetalFilter(isReverse: false)
-            let points = pointsInImages[5...10]
-            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
-            filter.a0 = a0
-            filter.a1 = a1
-            filter.c0 = CIVector(cgPoint: center)
-            filter.j0 = CIVector(cgPoint: pointsInImages[5])
-            filters.append(filter)
-          }
-          right: do {
-            let filter = MetalFilter(isReverse: true)
-            let points = pointsInImages[0...5]
-            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
-            filter.a0 = a0
-            filter.a1 = a1
-            filter.c0 = CIVector(cgPoint: center)
-            filter.j0 = CIVector(cgPoint: pointsInImages[5])
-            filters.append(filter)
-          }
+          let pointsInImage = faceContour.pointsInImage(imageSize: size)
+          let filter = BFilter()
+          filter.points = pointsInImage
+          filters.append(filter)
         }
-      }
+        
+//        if let faceContour = landmarks.faceContour {
+//          // 11 point iPhoneX
+//          // 17 point iPadPro / XR
+//          //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
+//
+//          let pointsInImages = faceContour.pointsInImage(imageSize: size)
+//          let center = landmarks.nose!.pointsInImage(imageSize: size).last!
+//          left: do {
+//            let filter = MetalFilter(isReverse: false)
+//            let points = pointsInImages[5...10]
+//            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+//            filter.a0 = a0
+//            filter.a1 = a1
+//            filter.c0 = CIVector(cgPoint: center)
+//            filter.j0 = CIVector(cgPoint: pointsInImages[5])
+//            filters.append(filter)
+//          }
+//          right: do {
+//            let filter = MetalFilter(isReverse: true)
+//            let points = pointsInImages[0...5]
+//            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+//            filter.a0 = a0
+//            filter.a1 = a1
+//            filter.c0 = CIVector(cgPoint: center)
+//            filter.j0 = CIVector(cgPoint: pointsInImages[5])
+//            filters.append(filter)
+//          }
+//        }
+        }
     }
     
     let lastFilter: CIFilter = filters.reduce(into: filter as CIFilter, { (result, filter) in
