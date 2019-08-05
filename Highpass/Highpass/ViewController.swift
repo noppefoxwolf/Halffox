@@ -38,7 +38,13 @@ class ViewController: UIViewController {
     
     let linearLightBlendOutput: CIImage
     linearLightBlend: do {
-      
+      let foregroundOutput: CIImage
+      foreground: do {
+        //o.5倍
+      }
+      // https://developer.apple.com/documentation/coreimage/ciblendkernel
+      let kernel = CIBlendKernel.linearLight
+      linearLightBlendOutput = kernel.apply(extent: inputImage.extent, arguments: [highpassOutput, inputImage])!
     }
     
     let result = linearLightBlendOutput
