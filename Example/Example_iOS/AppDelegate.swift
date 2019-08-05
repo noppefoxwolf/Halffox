@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-//#if targetEnvironment(simulator)
+#if targetEnvironment(simulator)
 import Holo
 typealias AVCaptureDevice = AnyCaptureDevice
 typealias AVCaptureDeviceInput = AnyCaptureDeviceInput
@@ -19,15 +19,15 @@ typealias AVCaptureConnection = AnyCaptureConnection
 typealias AVCaptureVideoDataOutputSampleBufferDelegate = AnyCaptureVideoDataOutputSampleBufferDelegate
 typealias AVCaptureOutput = AnyCaptureOutput
 typealias AVCaptureInput =  AnyCaptureInput
-//#endif
+#endif
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
   lazy var window: UIWindow? = .init(frame: UIScreen.main.bounds)
   func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-//    #if targetEnvironment(simulator)
+    #if targetEnvironment(simulator)
     HoloSettings.shared.mode = .image(UIImage(named: "miuFTHG3087_TP_V.jpg")!)
-//    #endif
+    #endif
     window?.rootViewController = UIStoryboard(name: "Main", bundle: nil).instantiateInitialViewController()
     window?.makeKeyAndVisible()
     return true

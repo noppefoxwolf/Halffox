@@ -58,8 +58,7 @@ extension UIImage {
     let pixelBuffer = cvPixelBuffer
     var newSampleBuffer: CMSampleBuffer? = nil
     
-    let presentationTimeStamp = CMTime(value: CMTimeValue(Date().timeIntervalSinceReferenceDate), timescale: 30)
-    var timimgInfo: CMSampleTimingInfo = .init(duration: CMTime(value: 1, timescale: 30), presentationTimeStamp: presentationTimeStamp, decodeTimeStamp: presentationTimeStamp)
+    var timimgInfo: CMSampleTimingInfo = .invalid
     var videoInfo: CMVideoFormatDescription? = nil
     CMVideoFormatDescriptionCreateForImageBuffer(allocator: nil, imageBuffer: pixelBuffer!, formatDescriptionOut: &videoInfo)
     CMSampleBufferCreateForImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: pixelBuffer!, dataReady: true, makeDataReadyCallback: nil, refcon: nil, formatDescription: videoInfo!, sampleTiming: &timimgInfo, sampleBufferOut: &newSampleBuffer)

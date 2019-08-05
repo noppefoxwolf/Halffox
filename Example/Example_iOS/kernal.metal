@@ -67,39 +67,78 @@ extern "C" {
     }
     
     //右
-    float2 warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
-      float2 location = dest.coord();
-      if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
-        float mu = (location.y - a0) / a1;
-        float s = 1;
-        float g = gauss(location.x, mu, s);
-        if (location.x < mu) {
+    float2 warp(float a0, float a1, float2 c0, float2 j0, destination dest) {
+      float2 location = dest.coord(); //現在の場所
+      float diameter = distance(c0, j0); //鼻から顎までの距離
+      float mu = (location.y - a0) / a1; //x軸上にある特徴点の場所
+      float s = diameter / 10; //顔の大きさと傾きを係数にかけたい
+      float g = gauss(location.x, mu, s);
+      float r = 1 - pow(dist / diameter, 3);
+      if (location.x < mu) {
+        // 0.0 ~ 1.0
+        return float2(location.x + (g * s * r), location.y);
+      } else {
+        // 1.0 ~ 0.0
+        return float2(location.x + ((2.0 - g) * s * r), location.y);
+      }
+    }
+    
+    //左
+    float2 reverse_warp(float a0, float a1, float2 c0, float2 j0, destination dest) {
+      float2 location = dest.coord(); //現在の場所
+      float dist = distance(c0, location); // 中心特徴点からの距離
+      float diameter = distance(c0, j0);
+      float mu = (location.y - a0) / a1; //x軸上にある特徴点の場所
+      float s = diameter / 10; //顔の大きさと傾きを係数にかけたい
+      float g = gauss(location.x, mu, s);
+      if (dist < diameter) {
+        float r = 1 - pow(dist / diameter, 3);
+        if (location.x > mu) {
           // 0.0 ~ 1.0
-          return float2(location.x + g * s, location.y);
+          return float2(location.x - (g * s * r), location.y);
         } else {
           // 1.0 ~ 0.0
-          return float2(location.x + (2.0 - g) * s, location.y);
+          return float2(location.x - ((2.0 - g) * s * r), location.y);
         }
       } else {
         return location;
       }
     }
     
-    //左
-    float2 reverse_warp(float a0, float a1, float x0, float x1, float y0, float y1, destination dest) {
-      float2 location = dest.coord();
-      if (x0 < location.x && location.x < x1 && y0 < location.y && location.y < y1) {
-        float mu = (location.y - a0) / a1;
-        float s = 1;
-        float g = gauss(location.x, mu, s);
-        if (mu < location.x) {
-          return float2(location.x - g * s, location.y);
-        } else {
-          return float2(location.x - (2.0 - g) * s, location.y);
+    //http://pc-physics.com/lagrange.html
+    float lambda(int i, int n, float x, float dataX[]) {
+      int j;
+      float lam = 1.0;
+      for (j = 0 ; j < n ; j++) {
+        if(i != j)
+        {
+          lam *= (x - dataX[j])/(dataX[i] - dataX[j]);
         }
+      }
+      return lam;
+    }
+
+    
+    float2 warp2(float2 points[11], destination dest) {
+      float2 location = dest.coord(); //現在の場所
+      float f = 0;
+      int i = 0;
+      int n = 11;
+      float dataX[11] = {};
+      for (i = 0 ; i < n; i++) {
+        dataX[i] = points[i].x;
+      }
+      for (i = 0 ; i < n; i++) {
+        f += points[i].y * lambda(i, n, location.x, dataX);
+      }
+      
+      if (f - location.y < 10.0) {
+        return float2(0, 0);
       } else {
         return location;
       }
+      return float2(location.x, location.y + f);
     }
+    
   }
 }

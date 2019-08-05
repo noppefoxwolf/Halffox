@@ -11,6 +11,20 @@ import AVFoundation
 import Vision
 import YUCIHighPassSkinSmoothing
 
+class BlankFilter: CIFilter {
+  private var image: CIImage? = nil
+  
+  override var outputImage: CIImage? {
+    return image
+  }
+  
+  override func setValue(_ value: Any?, forKey key: String) {
+    if key == kCIInputImageKey {
+      image = value as? CIImage
+    }
+  }
+}
+
 class ViewController: UIViewController {
   private let displayView: SampleBufferDisplayView = .init()
   
@@ -28,7 +42,8 @@ class ViewController: UIViewController {
 //  private lazy var visionQueue = DispatchQueue(label: "com.halffox.vision", qos: .default)
   
   let enlargeEye: CGFloat = 1.5
-  let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
+//  let filter = CIFilter(name: "YUCIHighPassSkinSmoothing")!
+  let filter: CIFilter = BlankFilter()
   lazy var source: Source = CameraSource()
   var isEnabled: Bool = true
   
@@ -70,6 +85,7 @@ extension ViewController: Output {
   func output(_ sampleBuffer: CMSampleBuffer) {
     if !isEnabled {
       DispatchQueue.main.async { [weak self] in
+        self?.displayView.displayLayer.flushAndRemoveImage()
         self?.displayView.displayLayer.enqueue(sampleBuffer)
       }
       return
@@ -79,7 +95,7 @@ extension ViewController: Output {
     
     vision: do {
       let options: [VNImageOption : Any] = [
-        VNImageOption.ciContext:context,
+        VNImageOption.ciContext : context,
       ]
       let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: options)
       try? handler.perform([request])
@@ -131,45 +147,41 @@ extension ViewController: Output {
       
       faceContour: do {
         if let faceContour = landmarks.faceContour {
-          // 11 point iPhoneX
-          // 17 point iPadPro / XR
-          //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
-
-          let pointCount = faceContour.pointCount
-          left: do {
-            let filter = MetalFilter(isReverse: false)
-            let points = faceContour.pointsInImage(imageSize: size)[5...10]
-            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
-            let x0 = points.map({ $0.x }).min()!
-            let x1 = points.map({ $0.x }).max()!
-            let y0 = points.map({ $0.y }).min()!
-            let y1 = points.map({ $0.y }).max()!
-            filter.a0 = a0
-            filter.a1 = a1
-            filter.x0 = x0
-            filter.x1 = x1
-            filter.y0 = y0
-            filter.y1 = y1
-            filters.append(filter)
-          }
-          right: do {
-            let filter = MetalFilter(isReverse: true)
-            let points = faceContour.pointsInImage(imageSize: size)[0...5]
-            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
-            let x0 = points.map({ $0.x }).min()!
-            let x1 = points.map({ $0.x }).max()!
-            let y0 = points.map({ $0.y }).min()!
-            let y1 = points.map({ $0.y }).max()!
-            filter.a0 = a0
-            filter.a1 = a1
-            filter.x0 = x0
-            filter.x1 = x1
-            filter.y0 = y0
-            filter.y1 = y1
-            filters.append(filter)
-          }
+          let pointsInImage = faceContour.pointsInImage(imageSize: size)
+          let filter = BFilter()
+          filter.points = pointsInImage
+          filters.append(filter)
         }
-      }
+        
+//        if let faceContour = landmarks.faceContour {
+//          // 11 point iPhoneX
+//          // 17 point iPadPro / XR
+//          //http://flexmonkey.blogspot.com/2016/04/recreating-kais-power-tools-goo-in-swift.html
+//
+//          let pointsInImages = faceContour.pointsInImage(imageSize: size)
+//          let center = landmarks.nose!.pointsInImage(imageSize: size).last!
+//          left: do {
+//            let filter = MetalFilter(isReverse: false)
+//            let points = pointsInImages[5...10]
+//            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+//            filter.a0 = a0
+//            filter.a1 = a1
+//            filter.c0 = CIVector(cgPoint: center)
+//            filter.j0 = CIVector(cgPoint: pointsInImages[5])
+//            filters.append(filter)
+//          }
+//          right: do {
+//            let filter = MetalFilter(isReverse: true)
+//            let points = pointsInImages[0...5]
+//            let (a0, a1) = fit(points: points.map({ CIVector(x: $0.x, y: $0.y) }))
+//            filter.a0 = a0
+//            filter.a1 = a1
+//            filter.c0 = CIVector(cgPoint: center)
+//            filter.j0 = CIVector(cgPoint: pointsInImages[5])
+//            filters.append(filter)
+//          }
+//        }
+        }
     }
     
     let lastFilter: CIFilter = filters.reduce(into: filter as CIFilter, { (result, filter) in

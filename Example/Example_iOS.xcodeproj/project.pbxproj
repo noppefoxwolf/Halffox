@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4FD985F02F01927149FA6297 /* Pods_Example_iOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BF51859CBD55FB776D6E399 /* Pods_Example_iOS.framework */; };
+		CDB1668C22EC59FE00869F4C /* miuFTHG3087_TP_V.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CDB1668B22EC59FE00869F4C /* miuFTHG3087_TP_V.jpg */; };
 		D7AE828222E649E500206A22 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AE828122E649E500206A22 /* AppDelegate.swift */; };
 		D7AE828422E649E500206A22 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AE828322E649E500206A22 /* ViewController.swift */; };
 		D7AE828722E649E500206A22 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7AE828522E649E500206A22 /* Main.storyboard */; };
@@ -25,6 +26,7 @@
 		854C88146B514AEACDFB39F9 /* Pods-Example_iOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example_iOS.debug.xcconfig"; path = "Target Support Files/Pods-Example_iOS/Pods-Example_iOS.debug.xcconfig"; sourceTree = "<group>"; };
 		8BF51859CBD55FB776D6E399 /* Pods_Example_iOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Example_iOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB19FF8B7EF2D00D546E2708 /* Pods-Example_iOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Example_iOS.release.xcconfig"; path = "Target Support Files/Pods-Example_iOS/Pods-Example_iOS.release.xcconfig"; sourceTree = "<group>"; };
+		CDB1668B22EC59FE00869F4C /* miuFTHG3087_TP_V.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = miuFTHG3087_TP_V.jpg; sourceTree = "<group>"; };
 		D7AE827E22E649E500206A22 /* Example_iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D7AE828122E649E500206A22 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D7AE828322E649E500206A22 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		D7AE828022E649E500206A22 /* Example_iOS */ = {
 			isa = PBXGroup;
 			children = (
+				CDB1668B22EC59FE00869F4C /* miuFTHG3087_TP_V.jpg */,
 				D7AE829622E64A7200206A22 /* lena.jpg */,
 				D7AE829422E64A7100206A22 /* MetalFilter.swift */,
 				D7AE829522E64A7100206A22 /* monariza.jpg */,
@@ -171,6 +174,7 @@
 				D7AE828C22E649E500206A22 /* LaunchScreen.storyboard in Resources */,
 				D7AE828922E649E500206A22 /* Assets.xcassets in Resources */,
 				D7AE828722E649E500206A22 /* Main.storyboard in Resources */,
+				CDB1668C22EC59FE00869F4C /* miuFTHG3087_TP_V.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
