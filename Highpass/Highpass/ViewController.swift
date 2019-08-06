@@ -47,7 +47,7 @@ class ViewController: UIViewController {
     highpass: do {
       let source = """
       kernel vec4 filterKernel(__sample image, __sample blurredImage) {
-        return vec4(vec3(image.rgb - blurredImage.rgb + 0.5), image.a);
+        return vec4(vec3(image.rgb - blurredImage.rgb), image.a * 0.5);
       }
       """
       let kernel = CIColorKernel(source: source)!
