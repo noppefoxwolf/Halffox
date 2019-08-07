@@ -56,7 +56,7 @@ extension ViewController: ARSessionDelegate {
       let camera = frame.camera
       
       let modelMatrix = faceAnchor.transform
-      
+      // https://stackoverflow.com/a/53255370/1131587
       let textureCoordinates = vertices.map { vertex -> vector_float2 in
         let vertex4 = vector_float4(vertex.x, vertex.y, vertex.z, 1)
         let world_vertex4 = simd_mul(modelMatrix, vertex4)
