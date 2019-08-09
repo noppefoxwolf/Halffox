@@ -35,12 +35,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
 extension ViewController: ARSessionDelegate {
   func session(_ session: ARSession, didUpdate frame: ARFrame) {
     
-    let inputImage = CIImage.init(cvPixelBuffer: frame.capturedImage)
+    let inputImage = CIImage.init(cvPixelBuffer: frame.capturedImage).oriented(.right)
     let faceAnchors = frame.anchors.compactMap { $0 as? ARFaceAnchor }
     
-    guard !faceAnchors.isEmpty,
-      let camera = session.currentFrame?.camera,
-      let targetView = self.view else { return }
+    guard !faceAnchors.isEmpty, let camera = session.currentFrame?.camera else {
+      DispatchQueue.main.async {
+        self.imageView.image = UIImage(ciImage: inputImage)
+      }
+      return
+    }
     
     // Calculate face points to project to screen
     
@@ -57,7 +60,7 @@ extension ViewController: ARSessionDelegate {
       
       let modelMatrix = faceAnchor.transform
       // https://stackoverflow.com/a/53255370/1131587
-      let textureCoordinates = vertices.map { vertex -> vector_float2 in
+      let textureCoordinates = vertices.map { vertex -> simd_float2 in
         let vertex4 = vector_float4(vertex.x, vertex.y, vertex.z, 1)
         let world_vertex4 = simd_mul(modelMatrix, vertex4)
         let world_vector3 = simd_float3(x: world_vertex4.x, y: world_vertex4.y, z: world_vertex4.z)
@@ -70,10 +73,13 @@ extension ViewController: ARSessionDelegate {
         let u = Float(pt.y) / Float(size.width)
         return vector_float2(u, v)
       }
+      let θ: Float = .pi / 2.0 //90
+      
+      let orientationMatrix = simd_float2x2(float2(x: cos(θ), y: sin(θ)), float2(x: -sin(θ), y: cos(θ)))
       
       UIGraphicsBeginImageContext(inputImage.extent.size)
       let ctx = UIGraphicsGetCurrentContext()!
-      UIImage.init(ciImage: inputImage).draw(at: .zero)
+      UIImage(ciImage: inputImage).draw(at: .zero)
 //      for point in textureCoordinates {
 //        ctx.setFillColor(UIColor.red.cgColor)
 //        ctx.fill(CGRect(origin: CGPoint(x: CGFloat(point.x) * inputImage.extent.width, y: CGFloat(point.y) * inputImage.extent.height), size: .init(width: 5, height: 5)))
@@ -83,7 +89,14 @@ extension ViewController: ARSessionDelegate {
 //      ctx.addLines(between: textureCoordinates.map({ CGPoint(x: CGFloat($0.x) * inputImage.extent.width, y: CGFloat($0.y) * inputImage.extent.height) }))
 //      ctx.strokePath()
       
-      
+      for (index, point) in textureCoordinates.enumerated() {
+        let point = simd_mul(orientationMatrix, point)
+        //guard index == 6 else { continue }
+        let p = CGPoint(x: CGFloat(point.x) * inputImage.extent.width + inputImage.extent.width, y: CGFloat(point.y) * inputImage.extent.height)
+//        debugPrint(index, p)
+        NSAttributedString(string: "\(index)").draw(at: p)
+      }
+
       
       let result = UIGraphicsGetImageFromCurrentImageContext()
       UIGraphicsEndImageContext()
