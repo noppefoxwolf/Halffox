@@ -50,6 +50,21 @@ class ViewController: UIViewController {
     
     setupTexture()
     
+    let source: [vector_float2] = [
+      vector_float2(0, 0),   vector_float2(0.5, 0),   vector_float2(1, 0),
+      vector_float2(0, 0.5), vector_float2(0.5, 0.5), vector_float2(1, 0.5),
+      vector_float2(0, 1),   vector_float2(0.5, 1),   vector_float2(1, 1)
+    ]
+    
+    //歪曲先つまみ点
+    let distination: [vector_float2] = [
+      vector_float2(0.25, 0),   vector_float2(0.75, 0),   vector_float2(1.25, 0),
+      vector_float2(-0.25, 0.5), vector_float2(0.25, 0.5), vector_float2(0.75, 0.5),
+      vector_float2(0.25, 1),   vector_float2(0.75, 1),   vector_float2(1.25, 1)
+    ]
+    let warp = SKWarpGeometryGrid(columns: 2, rows: 2, sourcePositions: source, destinationPositions: distination)
+    planeNode.warpGeometry = warp
+    
     imageView.backgroundColor = .cyan
     scene.backgroundColor = .red
     planeNode.position = .init(x: 1920 / 2 - 30, y: 1080 / 2 - 30)
@@ -71,7 +86,7 @@ class ViewController: UIViewController {
     var rawData0 = [UInt8](repeating: 0, count: Int(textureSizeX) * Int(textureSizeY) * 4)
     
     let bytesPerRow = 4 * Int(textureSizeX)
-    let bitmapInfo = CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.premultipliedLast.rawValue
+    let bitmapInfo = CGBitmapInfo.byteOrder32Little.rawValue | CGImageAlphaInfo.noneSkipFirst.rawValue
     
     let context = CGContext(data: &rawData0, width: Int(textureSizeX), height: Int(textureSizeY), bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: rgbColorSpace, bitmapInfo: bitmapInfo)!
     context.setFillColor(UIColor.green.cgColor)
@@ -88,46 +103,73 @@ class ViewController: UIViewController {
     
     offscreenTexture = textureA
   }
-  let context = CIContext()
 }
 
 extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
   func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-    let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
-    CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
-//    imageView.image = UIImage(ciImage: CIImage(cvPixelBuffer: pixelBuffer).oriented(.leftMirrored))
-    
+    var pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)!
 
-//    let width = CVPixelBufferGetWidth(pixelBuffer)
-//    let height = CVPixelBufferGetHeight(pixelBuffer)
-//    let viewport = CGRect(x: 0, y: 0, width: width, height: height)
-//
-//    let renderPassDescriptor = MTLRenderPassDescriptor()
-//    renderPassDescriptor.colorAttachments[0].texture = offscreenTexture
-//    renderPassDescriptor.colorAttachments[0].loadAction = .clear
-//    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 1, 0, 1.0); //green
-//    renderPassDescriptor.colorAttachments[0].storeAction = .store
-//
-//    let commandBuffer = commandQueue.makeCommandBuffer()!
-    
-    let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-    let cgImage = context.createCGImage(ciImage, from: ciImage.extent)!
-    let texture = SKTexture(cgImage: cgImage)
-//    planeNode.texture = texture
-    planeNode.run(.setTexture(texture))
-//    renderer.scene = scene
-//    renderer.render(withViewport: viewport, commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
-//    commandBuffer.commit()
+    let width = CVPixelBufferGetWidth(pixelBuffer)
+    let height = CVPixelBufferGetHeight(pixelBuffer)
+    let viewport = CGRect(x: 0, y: 0, width: width, height: height)
 
-//    imageView.image = UIImage(ciImage: CIImage(mtlTexture: offscreenTexture, options: [:])!)
-    CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
+    let renderPassDescriptor = MTLRenderPassDescriptor()
+    renderPassDescriptor.colorAttachments[0].texture = offscreenTexture
+    renderPassDescriptor.colorAttachments[0].loadAction = .clear
+    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 1, 0, 1.0); //green
+    renderPassDescriptor.colorAttachments[0].storeAction = .store
+
+    let commandBuffer = commandQueue.makeCommandBuffer()!
+    
+    CVPixelBufferLockBaseAddress(pixelBuffer, .init(rawValue: 0))
+    let sourceBaseAddr = CVPixelBufferGetBaseAddress(pixelBuffer)!
+    let colorspace = CGColorSpaceCreateDeviceRGB()
+    let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+    let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
+    let bitmapInfo: CGBitmapInfo
+    switch pixelFormat {
+    case kCVPixelFormatType_32ARGB:
+      bitmapInfo = CGBitmapInfo(rawValue: CGBitmapInfo.byteOrder32Big.rawValue | CGImageAlphaInfo.noneSkipFirst.rawValue)
+    case kCVPixelFormatType_32BGRA:
+      
+      bitmapInfo = CGBitmapInfo(rawValue: CGBitmapInfo.byteOrder32Little.rawValue | CGImageAlphaInfo.noneSkipFirst.rawValue)
+    default:
+      preconditionFailure("not support \(pixelFormat)")
+    }
+    
+    let provider = CGDataProvider(dataInfo: &pixelBuffer, data: sourceBaseAddr, size: bytesPerRow * height, releaseData: { (rawPixelBuffer, data, size) in
+      let usedPixelBuffer = rawPixelBuffer!.bindMemory(to: CVPixelBuffer.self, capacity: size)
+      CVPixelBufferUnlockBaseAddress(usedPixelBuffer.pointee, .init(rawValue: 0))
+    })!
+    if let image = CGImage(
+      width: width,
+      height: height,
+      bitsPerComponent: 8,
+      bitsPerPixel: 32,
+      bytesPerRow: bytesPerRow,
+      space: colorspace,
+      bitmapInfo: bitmapInfo,
+      provider: provider,
+      decode: nil,
+      shouldInterpolate: true,
+      intent: .defaultIntent) {
+      
+      let texture = SKTexture(cgImage: image)
+//      planeNode.texture = texture
+      planeNode.run(.setTexture(texture))
+    }
+    
+    renderer.scene = scene
+    renderer.render(withViewport: viewport, commandBuffer: commandBuffer, renderPassDescriptor: renderPassDescriptor)
+    commandBuffer.commit()
+
+    imageView.image = UIImage(ciImage: CIImage(mtlTexture: offscreenTexture, options: [:])!)
   }
   
   func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
     
   }
 }
-
 
 
 
@@ -157,6 +199,7 @@ class Camera {
   let session: AVCaptureSession = .init()
   
   init() {
+    output.videoSettings = [kCVPixelBufferPixelFormatTypeKey : kCVPixelFormatType_32BGRA] as [String : Any]
     session.addInput(input)
     session.addOutput(output)
   }
