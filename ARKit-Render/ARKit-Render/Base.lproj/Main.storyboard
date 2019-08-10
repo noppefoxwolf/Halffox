@@ -21,11 +21,25 @@
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Aqm-PF-NXj">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
                             </imageView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="24" translatesAutoresizingMaskIntoConstraints="NO" id="YUc-jD-eZm">
+                                <rect key="frame" x="20" y="778" width="374" height="84"/>
+                                <subviews>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="oJW-wC-qki">
+                                        <rect key="frame" x="-2" y="0.0" width="378" height="31"/>
+                                    </slider>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="ceL-gh-gWb">
+                                        <rect key="frame" x="-2" y="54" width="378" height="31"/>
+                                    </slider>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="Aqm-PF-NXj" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="FVv-0E-Fup"/>
+                            <constraint firstItem="fQZ-KI-GVf" firstAttribute="trailing" secondItem="YUc-jD-eZm" secondAttribute="trailing" constant="20" id="KXA-FS-xot"/>
                             <constraint firstItem="fQZ-KI-GVf" firstAttribute="trailing" secondItem="Aqm-PF-NXj" secondAttribute="trailing" id="QXo-j6-iIG"/>
+                            <constraint firstItem="fQZ-KI-GVf" firstAttribute="bottom" secondItem="YUc-jD-eZm" secondAttribute="bottom" id="Toj-m4-L2N"/>
+                            <constraint firstItem="YUc-jD-eZm" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" constant="20" id="kgc-LL-O3S"/>
                             <constraint firstItem="fQZ-KI-GVf" firstAttribute="bottom" secondItem="Aqm-PF-NXj" secondAttribute="bottom" id="qmy-DC-Ann"/>
                             <constraint firstItem="Aqm-PF-NXj" firstAttribute="top" secondItem="U0K-SW-4ec" secondAttribute="top" id="tGs-rM-nlt"/>
                         </constraints>
@@ -33,6 +47,8 @@
                     </view>
                     <connections>
                         <outlet property="imageView" destination="Aqm-PF-NXj" id="zqH-4Y-pFO"/>
+                        <outlet property="maxSlider" destination="ceL-gh-gWb" id="ZFp-bC-bnG"/>
+                        <outlet property="minSlider" destination="oJW-wC-qki" id="hHd-tv-w9d"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>

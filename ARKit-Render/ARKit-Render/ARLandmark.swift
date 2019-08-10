@@ -12,18 +12,19 @@ import ARKit
 class ARFaceObservation {
   public let capturedImage: CIImage
   public let landmarks: ARFaceLandmarks2D?
-  init(frame: ARFrame) {
-    capturedImage = CIImage(cvPixelBuffer: frame.capturedImage)
-    landmarks = ARFaceLandmarks2D(frame: frame)
+  init(frame: ARFrame, orientation: CGImagePropertyOrientation = CGImagePropertyOrientation.up) {
+    capturedImage = CIImage(cvPixelBuffer: frame.capturedImage).oriented(orientation)
+    landmarks = ARFaceLandmarks2D(frame: frame, orientation: orientation)
   }
 }
 
 open class ARFaceLandmarks2D {
   let textureCoordinates: [simd_float2]
+  let orientation: CGImagePropertyOrientation
   
-  init?(frame: ARFrame) {
+  init?(frame: ARFrame, orientation: CGImagePropertyOrientation) {
     let faceAnchors = frame.anchors.compactMap { $0 as? ARFaceAnchor }
-    if let faceAnchor = faceAnchors.first, faceAnchor.isTracked {
+    if let faceAnchor = faceAnchors.first, faceAnchor.isTracked {      
       let geometry = faceAnchor.geometry
       let vertices = geometry.vertices
       let size = frame.camera.imageResolution
@@ -31,15 +32,28 @@ open class ARFaceLandmarks2D {
       let viewportSize = CGSize(width: size.height, height: size.width)
       let modelMatrix = faceAnchor.transform
       // https://stackoverflow.com/a/53255370/1131587
-      textureCoordinates = vertices.map { vertex -> simd_float2 in
+      textureCoordinates = vertices.lazy.map { (vertex) -> simd_float2 in
         let vertex4 = vector_float4(vertex.x, vertex.y, vertex.z, 1)
         let world_vertex4 = simd_mul(modelMatrix, vertex4)
         let world_vector3 = simd_float3(x: world_vertex4.x, y: world_vertex4.y, z: world_vertex4.z)
         let pt = camera.projectPoint(world_vector3, orientation: .portrait, viewportSize: viewportSize)
         let v = 1.0 - Float(pt.x) / Float(size.height)
         let u = Float(pt.y) / Float(size.width)
-        return vector_float2(u, v)
+        let normalizedPoints = simd_float2(u, v)
+        
+        switch orientation {
+        case .up:
+          return normalizedPoints
+        case .right:
+          let θ: Float = .pi / 2.0 //90
+          let orientationMatrix = simd_float2x2(float2(x: cos(θ), y: sin(θ)), float2(x: -sin(θ), y: cos(θ)))
+          return simd_mul(orientationMatrix, normalizedPoints) + simd_float2(x: 1, y: 0)
+        default:
+          preconditionFailure("not supported")
+        }
+        
       }
+      self.orientation = orientation
     } else {
       return nil
     }
@@ -50,15 +64,21 @@ open class ARFaceLandmarks2D {
   }
   
   open var faceContour: ARFaceLandmarkRegion2D? {
-    return nil
+    let indices: [Int] = [940, 939, 938, 937, 936, 935, 934, 933, 932, 989, 988, 987, 986, 985, 984, 1049, 983, 982, 944, 992, 991, 990, 1007, 1006, 1005, 1004, 1003, 1002, 1001, 1000, 999]
+    return ARFaceLandmarkRegion2D(normalizedPoints: indices.compactMap({ textureCoordinates[$0] }))
+    // 940 939 938 937 936 935 934 933 932 989 988 987 086 985 984
+    // 1049
+    // 983 982 944 992 991 990 1007 1006 1005 1004 1003 1002 1001 1008 1009
   }
   
   open var leftEye: ARFaceLandmarkRegion2D? {
-    return nil
+    let indices: [Int] = (1181...1204).map({ $0 })
+    return ARFaceLandmarkRegion2D(normalizedPoints: indices.compactMap({ textureCoordinates[$0] }))
   }
   
   open var rightEye: ARFaceLandmarkRegion2D? {
-    return nil
+    let indices: [Int] = (1061...1084).map({ $0 })
+    return ARFaceLandmarkRegion2D(normalizedPoints: indices.compactMap({ textureCoordinates[$0] }))
   }
   
   open var leftEyebrow: ARFaceLandmarkRegion2D? {
@@ -74,7 +94,9 @@ open class ARFaceLandmarks2D {
   }
   
   open var noseCrest: ARFaceLandmarkRegion2D? {
-    return nil
+    let indices: [Int] = [15, 14, 13, 12, 11, 10, 9, 8]
+    return ARFaceLandmarkRegion2D(normalizedPoints: indices.compactMap({ textureCoordinates[$0] }))
+    // 15 ~ 8
   }
   
   open var medianLine: ARFaceLandmarkRegion2D? {
@@ -82,6 +104,7 @@ open class ARFaceLandmarks2D {
   }
   
   open var outerLips: ARFaceLandmarkRegion2D? {
+    //102 100 99 98 91 90 1 539 540 547 548 549 551
     return nil
   }
   
