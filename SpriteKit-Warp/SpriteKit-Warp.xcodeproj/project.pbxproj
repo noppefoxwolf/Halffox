@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD94205622FEE4DC00A727AE /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD94205522FEE4DC00A727AE /* Camera.swift */; };
+		CD94205822FEF0C300A727AE /* CIImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD94205722FEF0C300A727AE /* CIImage+Extensions.swift */; };
+		CD94205A22FEF21900A727AE /* WarpGeometryFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD94205922FEF21900A727AE /* WarpGeometryFilter.swift */; };
 		D70CC0BB22FD7747005F09CB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70CC0BA22FD7747005F09CB /* AppDelegate.swift */; };
 		D70CC0BD22FD7747005F09CB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D70CC0BC22FD7747005F09CB /* ViewController.swift */; };
 		D70CC0C022FD7747005F09CB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D70CC0BE22FD7747005F09CB /* Main.storyboard */; };
@@ -15,6 +18,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		CD94205522FEE4DC00A727AE /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
+		CD94205722FEF0C300A727AE /* CIImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CIImage+Extensions.swift"; sourceTree = "<group>"; };
+		CD94205922FEF21900A727AE /* WarpGeometryFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpGeometryFilter.swift; sourceTree = "<group>"; };
 		D70CC0B722FD7747005F09CB /* SpriteKit-Warp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "SpriteKit-Warp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D70CC0BA22FD7747005F09CB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D70CC0BC22FD7747005F09CB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -60,6 +66,9 @@
 				D70CC0C122FD7747005F09CB /* Assets.xcassets */,
 				D70CC0C322FD7747005F09CB /* LaunchScreen.storyboard */,
 				D70CC0C622FD7747005F09CB /* Info.plist */,
+				CD94205522FEE4DC00A727AE /* Camera.swift */,
+				CD94205722FEF0C300A727AE /* CIImage+Extensions.swift */,
+				CD94205922FEF21900A727AE /* WarpGeometryFilter.swift */,
 			);
 			path = "SpriteKit-Warp";
 			sourceTree = "<group>";
@@ -136,7 +145,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				D70CC0BD22FD7747005F09CB /* ViewController.swift in Sources */,
+				CD94205822FEF0C300A727AE /* CIImage+Extensions.swift in Sources */,
 				D70CC0BB22FD7747005F09CB /* AppDelegate.swift in Sources */,
+				CD94205622FEE4DC00A727AE /* Camera.swift in Sources */,
+				CD94205A22FEF21900A727AE /* WarpGeometryFilter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
