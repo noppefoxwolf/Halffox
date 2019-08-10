@@ -23,23 +23,19 @@ open class ARFaceLandmarks2D {
   
   init?(frame: ARFrame) {
     let faceAnchors = frame.anchors.compactMap { $0 as? ARFaceAnchor }
-    if let faceAnchor = faceAnchors.first {
+    if let faceAnchor = faceAnchors.first, faceAnchor.isTracked {
       let geometry = faceAnchor.geometry
       let vertices = geometry.vertices
       let size = frame.camera.imageResolution
       let camera = frame.camera
-      
+      let viewportSize = CGSize(width: size.height, height: size.width)
       let modelMatrix = faceAnchor.transform
       // https://stackoverflow.com/a/53255370/1131587
       textureCoordinates = vertices.map { vertex -> simd_float2 in
         let vertex4 = vector_float4(vertex.x, vertex.y, vertex.z, 1)
         let world_vertex4 = simd_mul(modelMatrix, vertex4)
         let world_vector3 = simd_float3(x: world_vertex4.x, y: world_vertex4.y, z: world_vertex4.z)
-        let pt = camera.projectPoint(world_vector3,
-                                     orientation: .portrait,
-                                     viewportSize: CGSize(
-                                      width: CGFloat(size.height),
-                                      height: CGFloat(size.width)))
+        let pt = camera.projectPoint(world_vector3, orientation: .portrait, viewportSize: viewportSize)
         let v = 1.0 - Float(pt.x) / Float(size.height)
         let u = Float(pt.y) / Float(size.width)
         return vector_float2(u, v)
