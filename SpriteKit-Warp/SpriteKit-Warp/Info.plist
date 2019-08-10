@@ -43,5 +43,7 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string></string>
+	<key>SCNDisableWideGamut</key>
+	<true/>
 </dict>
 </plist>
