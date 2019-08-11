@@ -87,7 +87,7 @@ private class WarpGeometryFilterEngine {
     let renderPassDescriptor = MTLRenderPassDescriptor()
     renderPassDescriptor.colorAttachments[0].texture = offscreenTexture
     renderPassDescriptor.colorAttachments[0].loadAction = .clear
-    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 1.0)
+    renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0)
     renderPassDescriptor.colorAttachments[0].storeAction = .store
     
     let commandBuffer = commandQueue.makeCommandBuffer()!

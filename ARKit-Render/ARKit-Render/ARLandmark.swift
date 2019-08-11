@@ -12,9 +12,49 @@ import ARKit
 class ARFaceObservation {
   public let capturedImage: CIImage
   public let landmarks: ARFaceLandmarks2D?
+  public var perspectivePoints: ARPerspectivePoints2D?
+  
   init(frame: ARFrame, orientation: CGImagePropertyOrientation = CGImagePropertyOrientation.up) {
     capturedImage = CIImage(cvPixelBuffer: frame.capturedImage).oriented(orientation)
     landmarks = ARFaceLandmarks2D(frame: frame, orientation: orientation)
+    perspectivePoints = ARPerspectivePoints2D(landmarks: landmarks)
+  }
+}
+
+class ARPerspectivePoints2D {
+  let topLeft: ARPerspectiveRegion2D
+  let topRight: ARPerspectiveRegion2D
+  let bottomRight: ARPerspectiveRegion2D
+  let bottomLeft: ARPerspectiveRegion2D
+  
+  init?(landmarks: ARFaceLandmarks2D?) {
+    if let allPoints = landmarks?.allPoints {
+      // ここの計算は適当、横顔とかに弱い
+      // 20
+      // 1023 13 1029
+      // 1047
+      let rightTranslationMatrix = allPoints.normalizedPoints[1029].simd - allPoints.normalizedPoints[13].simd
+      let leftTranslationMatrix = allPoints.normalizedPoints[1023].simd - allPoints.normalizedPoints[13].simd
+      
+      topLeft = ARPerspectiveRegion2D(point: (allPoints.normalizedPoints[20].simd + leftTranslationMatrix).point)
+      topRight = ARPerspectiveRegion2D(point: (allPoints.normalizedPoints[20].simd + rightTranslationMatrix).point)
+      bottomRight = ARPerspectiveRegion2D(point: (allPoints.normalizedPoints[1047].simd + rightTranslationMatrix).point)
+      bottomLeft = ARPerspectiveRegion2D(point: (allPoints.normalizedPoints[1047].simd + leftTranslationMatrix).point)
+    } else {
+      return nil
+    }
+  }
+}
+
+public class ARPerspectiveRegion2D {
+  let point: CGPoint
+  
+  init(point: CGPoint) {
+    self.point = point
+  }
+  
+  func pointInImage(imageSize: CGSize) -> CGPoint {
+    return point.applying(.init(scaleX: imageSize.width, y: imageSize.height))
   }
 }
 
@@ -23,8 +63,7 @@ open class ARFaceLandmarks2D {
   let orientation: CGImagePropertyOrientation
   
   init?(frame: ARFrame, orientation: CGImagePropertyOrientation) {
-    let faceAnchors = frame.anchors.compactMap { $0 as? ARFaceAnchor }
-    if let faceAnchor = faceAnchors.first, faceAnchor.isTracked {      
+    if let faceAnchor = frame.anchors.compactMap({ $0 as? ARFaceAnchor }).first, faceAnchor.isTracked {
       let geometry = faceAnchor.geometry
       let vertices = geometry.vertices
       let size = frame.camera.imageResolution
@@ -127,10 +166,10 @@ public class ARFaceLandmarkRegion2D {
   let normalizedPoints: [CGPoint]
   
   init(normalizedPoints: [simd_float2]) {
-    self.normalizedPoints = normalizedPoints.map({ CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) })
+    self.normalizedPoints = normalizedPoints.lazy.map({ CGPoint(x: CGFloat($0.x), y: CGFloat($0.y)) })
   }
   
   func pointsInImage(imageSize: CGSize) -> [CGPoint] {
-    return normalizedPoints.map({ $0.applying(.init(scaleX: imageSize.width, y: imageSize.height)) })
+    return normalizedPoints.lazy.map({ $0.applying(.init(scaleX: imageSize.width, y: imageSize.height)) })
   }
 }
