@@ -32,3 +32,8 @@ extension simd_float2 {
   }
 }
 
+extension CGSize {
+  var center: CGPoint {
+    return CGPoint(x: width / 2, y: height / 2)
+  }
+}

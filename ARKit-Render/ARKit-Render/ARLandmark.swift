@@ -129,7 +129,7 @@ open class ARFaceLandmarks2D {
   }
   
   open var nose: ARFaceLandmarkRegion2D? {
-    return nil
+    return ARFaceLandmarkRegion2D(normalizedPoints: [textureCoordinates[8]] )
   }
   
   open var noseCrest: ARFaceLandmarkRegion2D? {
